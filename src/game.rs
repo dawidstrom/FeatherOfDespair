@@ -2,29 +2,32 @@ extern crate piston_window;
 
 use piston_window::*;
 
-use crate::geo;
+use crate::board;
 use crate::entity;
 
-use geo::*;
+use board::*;
 use entity::*;
 
 pub struct Game {
-    pub player: Entity,
+    pub player: Player,
     pub board: Board,
 }
 
 impl Game {
     pub fn new() -> Game {
-        let player = Entity {
-            pos:        geo::Position{ x: 5, y: 5 },
-            size:       geo::Size{ width: 30, height: 20 },
+        let player = Player {
+            entity: Entity { 
+                pos: board::Position{ x: 5, y: 5 },
+                is_blocking: true,
+            },
             max_hp:     100,
             current_hp: 100,
         };
 
         let board = Board{
-            size: geo::Size{ width: 20, height: 15 },
-            scale: 30
+            size: board::Size{ width: 20, height: 15 },
+            scale: 30,
+            entity_map: Vec::new(),
         };
 
         Game {
@@ -38,10 +41,10 @@ impl Game {
     
     pub fn on_input(&mut self, key: Key) {
         match key {
-            Key::W => self.player.move_dir(1, Direction::Up,    &self.board),
-            Key::D => self.player.move_dir(1, Direction::Right, &self.board),
-            Key::S => self.player.move_dir(1, Direction::Down,  &self.board),
-            Key::A => self.player.move_dir(1, Direction::Left,  &self.board),
+            Key::W => self.player.entity.move_dir(1, Direction::Up,    &mut self.board),
+            Key::D => self.player.entity.move_dir(1, Direction::Right, &mut self.board),
+            Key::S => self.player.entity.move_dir(1, Direction::Down,  &mut self.board),
+            Key::A => self.player.entity.move_dir(1, Direction::Left,  &mut self.board),
             _ => {},
         }
     }
@@ -52,8 +55,8 @@ impl Game {
             clear([1.0; 4], graphics);
 
             let player_sprite = [
-                (self.player.pos.x * self.board.scale) as f64,
-                (self.player.pos.y * self.board.scale) as f64,
+                (self.player.entity.pos.x * self.board.scale) as f64,
+                (self.player.entity.pos.y * self.board.scale) as f64,
                 self.board.scale as f64,
                 self.board.scale as f64,
             ];

@@ -1,6 +1,7 @@
 mod game;
-mod geo;
+mod board;
 mod entity;
+mod item;
 
 extern crate piston_window;
 
