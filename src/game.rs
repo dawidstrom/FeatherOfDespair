@@ -28,14 +28,21 @@ impl Game {
             max_hp:     100,
             current_hp: 100,
         };
+
+        let mut board = Board{
+            size: utils::Size{ width: 20, height: 15 },
+            scale: 30,
+            blocking_map: Vec::new(),
+        };
+
+        // Add one wall to board.
+        board.blocking_map.push(
+            Entity{ pos: utils::Position{ x:1, y:1 }, blocking: true }
+        );
         
         Game {
             player: player,
-            board: Board{
-                size: utils::Size{ width: 20, height: 15 },
-                scale: 30,
-                blocking_map: Vec::new(),
-            },
+            board: board,
         }
     }
 
@@ -57,6 +64,7 @@ impl Game {
             // Clear screen.
             clear([1.0; 4], graphics);
 
+            //TODO: create method to draw sprite for entities.
             let player_sprite = [
                 (self.player.entity.pos.x * self.board.scale) as f64,
                 (self.player.entity.pos.y * self.board.scale) as f64,
@@ -70,6 +78,23 @@ impl Game {
                 context.transform,
                 graphics
             );
+
+            for wall in self.board.blocking_map.iter() {
+                let wall_sprite = [
+                    (wall.pos.x * self.board.scale) as f64,
+                    (wall.pos.y * self.board.scale) as f64,
+                    self.board.scale as f64,
+                    self.board.scale as f64,
+                ];
+
+                rectangle(
+                    [1.0, 1.0, 0.0, 1.0], // red
+                    wall_sprite,
+                    context.transform,
+                    graphics
+                );
+
+            }
         });
     }
 }
