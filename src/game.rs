@@ -4,9 +4,11 @@ use piston_window::*;
 
 use crate::board;
 use crate::entity;
+use crate::utils;
 
 use board::*;
 use entity::*;
+use utils::*;
 
 pub struct Game {
     pub player: Player,
@@ -17,22 +19,23 @@ impl Game {
     pub fn new() -> Game {
         let player = Player {
             entity: Entity { 
-                pos: board::Position{ x: 5, y: 5 },
-                is_blocking: true,
+                pos: utils::Position{ 
+                    x: 5, 
+                    y: 5,
+                },
+                blocking: false,
             },
             max_hp:     100,
             current_hp: 100,
         };
-
-        let board = Board{
-            size: board::Size{ width: 20, height: 15 },
-            scale: 30,
-            entity_map: Vec::new(),
-        };
-
+        
         Game {
             player: player,
-            board: board,
+            board: Board{
+                size: utils::Size{ width: 20, height: 15 },
+                scale: 30,
+                blocking_map: Vec::new(),
+            },
         }
     }
 
