@@ -15,6 +15,10 @@ Built using:
 Track progress on [trello](https://trello.com/b/JS9bzLP3/featherofdespair).
 
 ## Iterations
-**Version 0.1.0:**
+**0.2.0:**
+
+<img src="Extra/2020-05-28.gif" />
+
+**0.1.0:**
 
 <img src="Extra/2020-05-24.gif" />
