@@ -28,7 +28,7 @@ Commit 27e75f81125ab01bbbfbcddd3e03a02e8a5dd50f
 
 Add walls.
 
-<img src="Extra/0.2.0.gif" />
+<img src="extra/0.2.0.gif" />
 
 **Game 0.1.0:**
 Commit 363f27ea80506e02d30409b19e0250988a131868
