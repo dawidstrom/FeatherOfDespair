@@ -10,6 +10,11 @@ use board::*;
 use entity::*;
 use utils::*;
 
+use std::{
+    fs::File,
+    io::{self, Read, Write},
+};
+
 pub struct Game {
     pub player: Player,
     pub board: Board,
@@ -96,5 +101,10 @@ impl Game {
 
             }
         });
+    }
+
+    pub fn load_map(&mut self, filename: String) {
+        let mut file = File::open(filename).unwrap();
+        self.board = Board::load(&mut file).unwrap();
     }
 }

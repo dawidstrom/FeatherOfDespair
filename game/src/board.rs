@@ -74,7 +74,7 @@ impl Board {
         })
     }
 
-    pub fn write(self, mut writer: impl byteorder::WriteBytesExt) {
+    pub fn write(&self, mut writer: impl byteorder::WriteBytesExt) {
         // Board size.
         writer.write_i32::<LittleEndian>(self.size.width);
         writer.write_i32::<LittleEndian>(self.size.height);
@@ -83,7 +83,7 @@ impl Board {
         writer.write_i32::<LittleEndian>(self.scale);
 
         // Entities.
-        for wall in self.blocking_map {
+        for wall in self.blocking_map.iter() {
             // Position.
             writer.write_i32::<LittleEndian>(wall.pos.x);
             writer.write_i32::<LittleEndian>(wall.pos.y);
