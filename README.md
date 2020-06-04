@@ -18,19 +18,26 @@ Track progress on [trello](https://trello.com/b/JS9bzLP3/featherofdespair).
 ## Iterations
 Gifs of each iteration can be found in the "Extra" folder.
 
+**Map editor 0.2.0:**
+c95a1b6cbf9ead5f42c2dfaf57598e3341b836ce
+
+Add ability to place currently selected tile on tilemap.
+
+<img src="extra/map.editor.0.2.0.gif" />
+
 **Map editor 0.1.0:**
-Commit 03e59e8c5432dc19590e9a25216effb0d12b2c96
+03e59e8c5432dc19590e9a25216effb0d12b2c96
 
 Add map editor which can load/save tilemap.
 
 **Game 0.2.0:**
-Commit 27e75f81125ab01bbbfbcddd3e03a02e8a5dd50f
+27e75f81125ab01bbbfbcddd3e03a02e8a5dd50f
 
 Add walls.
 
-<img src="extra/0.2.0.gif" />
+<img src="extra/game.0.2.0.gif" />
 
 **Game 0.1.0:**
-Commit 363f27ea80506e02d30409b19e0250988a131868
+363f27ea80506e02d30409b19e0250988a131868
 
 Initial version
