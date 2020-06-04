@@ -40,36 +40,42 @@ impl TileMap {
         board.blocking_map.push(
             Entity{ pos: utils::Position{ x:1, y:1 }, blocking: true },
         );
-        // board.blocking_map.push(
-        //     Entity{ pos: utils::Position{ x:2, y:1 }, blocking: true },
-        // );
-        // board.blocking_map.push(
-        //     Entity{ pos: utils::Position{ x:3, y:1 }, blocking: true },
-        // );
-        // board.blocking_map.push(
-        //     Entity{ pos: utils::Position{ x:3, y:2 }, blocking: true },
-        // );
-        // board.blocking_map.push(
-        //     Entity{ pos: utils::Position{ x:3, y:3 }, blocking: true },
-        // );
-        // board.blocking_map.push(
-        //     Entity{ pos: utils::Position{ x:4, y:3 }, blocking: true },
-        // );
-        
+
         TileMap {
             player: player,
             board: board,
         }
     }
 
-    pub fn on_input(&mut self, key: Key) {
+    pub fn on_mouse_input(&mut self, button: MouseButton, [x,y]: [f64;2]) {
+        println!("clicked position {} {}", x, y);
+        match button {
+            MouseButton::Left => {
+                let new_x = x as i32 / self.board.scale;
+                let new_y = y as i32 / self.board.scale;
+                println!("spawn new entity on board position {} {}", new_x, new_y);
+
+                self.board.blocking_map.push(
+                    Entity{
+                        pos: utils::Position{
+                            x: new_x,
+                            y: new_y,
+                        }, 
+                        blocking: true
+                    },
+                )},
+            _ => {},
+        }
+    }
+
+    pub fn on_keyboard_input(&mut self, key: Key) {
         match key {
             Key::P => { self.write_map(String::from("foo.txt")) },
             Key::L => { self.load_map(String::from("foo.txt")) },
             _ => {},
         }
     }
-
+    
     pub fn on_render(&mut self, event: Event, window: &mut PistonWindow) {
         window.draw_2d(&event, |context, graphics, _device| {
             // Clear screen.
