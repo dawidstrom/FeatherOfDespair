@@ -129,12 +129,21 @@ impl TileMap {
     }
 
     pub fn load_map(&mut self, filename: String) {
-        let mut file = File::open(filename).unwrap();
-        self.board = Board::load(&mut file).unwrap();
+        println!("Loading tilemap {}...", filename);
+        if let Ok(mut file) = File::open(&filename) {
+            if let Ok(mut new_board) = Board::load(&mut file) {
+                self.board = new_board;
+                println!("Tilemap {} loaded!", filename);
+            }
+            println!("Error parsing tilemap {}!", filename);
+        }
+        println!("Unable to open {}!", filename);
     }
 
-    pub fn write_map(&mut self, filename: String) {
-        let mut file = File::create(filename).unwrap();
+    pub fn write_map(&mut self, mut filename: String) {
+        println!("Creating tilemap {}...", filename);
+        let mut file = File::create(&mut filename).unwrap();
         self.board.write(&mut file);
+        println!("tilemap {} created!", filename);
     }
 }

@@ -104,7 +104,14 @@ impl Game {
     }
 
     pub fn load_map(&mut self, filename: String) {
-        let mut file = File::open(filename).unwrap();
-        self.board = Board::load(&mut file).unwrap();
+        println!("Loading tilemap {}...", filename);
+        if let Ok(mut file) = File::open(&filename) {
+            if let Ok(mut new_board) = Board::load(&mut file) {
+                self.board = new_board;
+                println!("Tilemap {} loaded!", filename);
+            }
+            println!("Error parsing tilemap {}!", filename);
+        }
+        println!("Unable to open {}!", filename);
     }
 }

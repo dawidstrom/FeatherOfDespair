@@ -10,7 +10,7 @@ use piston_window::*;
 fn main() {
     // Setup game.
     let mut game = game::Game::new();
-    //game.load_map(String::from("foo.map"));
+    game.load_map(String::from("foo.txt"));
     
     // Setup piston.
     let window_size = [
