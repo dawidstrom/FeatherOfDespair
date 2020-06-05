@@ -48,22 +48,42 @@ impl TileMap {
     }
 
     pub fn on_mouse_input(&mut self, button: MouseButton, [x,y]: [f64;2]) {
-        println!("clicked position {} {}", x, y);
+        println!("Clicked position {} {}", x, y);
         match button {
             MouseButton::Left => {
-                let new_x = x as i32 / self.board.scale;
-                let new_y = y as i32 / self.board.scale;
-                println!("spawn new entity on board position {} {}", new_x, new_y);
+                let clicked_pos = utils::Position{
+                    x: x as i32 / self.board.scale,
+                    y: y as i32 / self.board.scale,
+                };
 
-                self.board.blocking_map.push(
-                    Entity{
-                        pos: utils::Position{
-                            x: new_x,
-                            y: new_y,
-                        }, 
-                        blocking: true
-                    },
-                )},
+                if self.board.blocking_map.iter().any(|entity| entity.pos == clicked_pos) {
+                    println!("Position already occupied!");
+                } else { // Position isn't occupied.
+                    println!("Spawn new entity on board position {} {}", clicked_pos.x, clicked_pos.y);
+
+                    self.board.blocking_map.push(
+                        Entity{
+                            pos: utils::Position{
+                                x: clicked_pos.x,
+                                y: clicked_pos.y,
+                            }, 
+                            blocking: true
+                        },
+                    );
+                }
+            },
+            MouseButton::Right => {
+                let clicked_pos = utils::Position{
+                    x: x as i32 / self.board.scale,
+                    y: y as i32 / self.board.scale,
+                };
+
+                if let Some(index) = self.board.blocking_map.iter().position(|entity| entity.pos == clicked_pos) {
+                    self.board.blocking_map.remove(index);
+                } else { // Position isn't occupied.
+                    println!("There is not tile in this position!");
+                }
+            },
             _ => {},
         }
     }
