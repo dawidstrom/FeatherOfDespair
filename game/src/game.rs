@@ -18,6 +18,7 @@ use std::{
 pub struct Game {
     pub player: Player,
     pub board: Board,
+    pub lights: Vec<Entity>,
 }
 
 impl Game {
@@ -44,10 +45,13 @@ impl Game {
         board.blocking_map.push(
             Entity{ pos: utils::Position{ x:1, y:1 }, blocking: true }
         );
+
+        let mut lights = Vec::new();
         
         Game {
             player: player,
             board: board,
+            lights: lights,
         }
     }
 
@@ -66,10 +70,9 @@ impl Game {
 
     pub fn on_render(&mut self, event: Event, window: &mut PistonWindow) {
         window.draw_2d(&event, |context, graphics, _device| {
-            // Clear screen.
-            clear([1.0; 4], graphics);
+            // Clear screen with black.
+            clear([0.0; 4], graphics);
 
-            //TODO: create method to draw sprite for entities.
             let player_sprite = [
                 (self.player.entity.pos.x * self.board.scale) as f64,
                 (self.player.entity.pos.y * self.board.scale) as f64,
@@ -77,28 +80,54 @@ impl Game {
                 self.board.scale as f64,
             ];
 
+            // Draw white ground on areas visible from torches.
+            //TODO: Just calculate positions in torch area instead.
+            for x in 0..self.board.size.width {
+                for y in 0..self.board.size.height {
+                    let pos = utils::Position{x,y};
+                    if utils::Position::square_distance(
+                        self.player.entity.pos,
+                        pos
+                    ) < 15 {
+                        rectangle(
+                            [0.9,0.9,0.9,1.0], // white-ish
+                            [(x*self.board.scale) as f64,
+                            (y*self.board.scale) as f64,
+                            self.board.scale as f64,
+                            self.board.scale as f64],
+                            context.transform,
+                            graphics
+                        );
+                    }
+                }
+            }
+
             rectangle(
-                [1.0, 0.0, 0.0, 1.0], // red
+                [0.6, 0.0, 0.0, 1.0], // red
                 player_sprite,
                 context.transform,
                 graphics
             );
 
             for wall in self.board.blocking_map.iter() {
-                let wall_sprite = [
-                    (wall.pos.x * self.board.scale) as f64,
-                    (wall.pos.y * self.board.scale) as f64,
-                    self.board.scale as f64,
-                    self.board.scale as f64,
-                ];
+                if utils::Position::square_distance(
+                    self.player.entity.pos,
+                    wall.pos
+                ) < 15 {
+                    let wall_sprite = [
+                        (wall.pos.x * self.board.scale) as f64,
+                        (wall.pos.y * self.board.scale) as f64,
+                        self.board.scale as f64,
+                        self.board.scale as f64,
+                    ];
 
-                rectangle(
-                    [1.0, 1.0, 0.0, 1.0], // red
-                    wall_sprite,
-                    context.transform,
-                    graphics
-                );
-
+                    rectangle(
+                        [0.4, 0.4, 0.4, 1.0], // dark-grey
+                        wall_sprite,
+                        context.transform,
+                        graphics
+                    );
+                }
             }
         });
     }

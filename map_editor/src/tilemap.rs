@@ -90,16 +90,16 @@ impl TileMap {
 
     pub fn on_keyboard_input(&mut self, key: Key) {
         match key {
-            Key::P => { self.write_map(String::from("foo.txt")) },
-            Key::L => { self.load_map(String::from("foo.txt")) },
+            Key::P => { self.write_map(String::from("default.map")) },
+            Key::L => { self.load_map(String::from("default.map")) },
             _ => {},
         }
     }
     
     pub fn on_render(&mut self, event: Event, window: &mut PistonWindow) {
         window.draw_2d(&event, |context, graphics, _device| {
-            // Clear screen.
-            clear([1.0; 4], graphics);
+            // Clear screen with white-ish color.
+            clear([0.9; 4], graphics);
 
             //TODO: create method to draw sprite for entities.
             let player_sprite = [
@@ -110,7 +110,7 @@ impl TileMap {
             ];
 
             rectangle(
-                [1.0, 0.0, 0.0, 1.0], // red
+                [0.6, 0.0, 0.0, 1.0], // red
                 player_sprite,
                 context.transform,
                 graphics
@@ -125,7 +125,7 @@ impl TileMap {
                 ];
 
                 rectangle(
-                    [1.0, 1.0, 0.0, 1.0], // red
+                    [0.4, 0.4, 0.4, 1.0], // dark-grey
                     wall_sprite,
                     context.transform,
                     graphics
