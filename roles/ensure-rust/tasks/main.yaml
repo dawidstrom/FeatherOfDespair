@@ -3,9 +3,7 @@
   register: rustup_tempfile
 
 - name: Get rustup install script
-  get_url:
-    url: https://sh.rustup.rs
-    dest: "{{ rustup_tempfile.path }}"
+  command: "curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -o {{ rustup_tempfile.path }}"
 
 - name: Make script executable
   file:
