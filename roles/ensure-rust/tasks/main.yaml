@@ -16,7 +16,7 @@
   shell: "{{ rustup_tempfile.path }} -y"
 
 - name: Install rust toolchains
-  when: rust_toolchain_version
+  when: rust_toolchain_version is defined
   command: "rustup install {{ rustup_toolchain_version }}"
   environment:
     PATH: "{{ ansible_user_dir }}/.cargo/bin:{{ ansible_env.PATH }}"
