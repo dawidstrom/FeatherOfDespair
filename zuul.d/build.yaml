@@ -2,8 +2,11 @@
     name: featherofdespair-build
     pre-run: playbooks/build/pre.yaml
     run: playbooks/build/run.yaml
+    voting: false
 
 - project:
-    post-merge: &id001
+    check: &id001
       jobs:
         - featherofdespair-build
+    gate: *id001
+    post-merge: *id001
