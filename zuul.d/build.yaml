@@ -1,0 +1,10 @@
+- job:
+    name: featherofdespair-build
+    pre-run: playbooks/build/pre.yaml
+    run: playbooks/build/run.yaml
+    voting: false
+    roles:
+      - zuul: opendev/zuul-jobs
+
+- project:
+    post-merge: *id001
