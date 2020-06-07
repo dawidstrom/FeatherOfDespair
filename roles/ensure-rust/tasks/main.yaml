@@ -7,6 +7,11 @@
     url: https://sh.rustup.rs
     dest: "{{ rustup_tempfile.path }}"
 
+- name: Make script executable
+  file:
+    mode: 0755
+    path: "{{ rustup_tempfile.path }}"
+
 - name: Install rustup
   command: "{{ rustup_tempfile.path }} -y"
 
