@@ -1,0 +1,17 @@
+- name: Create tempfile for rustup install script.
+  tempfile:
+  register: rustup_tempfile
+
+- name: Get rustup install script
+  get_url:
+    url: https://sh.rustup.rs | sh
+    dest: "{{ rustup_tempfile.path }}"
+
+- name: Install rustup
+  command: "{{ rustup_tempfile.path }} -y"
+
+- name: Install rust toolchains
+  when: rust_toolchain_version
+  command: "rustup install {{ rustup_toolchain_version }}"
+  environment:
+    PATH: "{{ ansible_user_dir }}/.cargo/bin:{{ ansible_env.PATH }}"

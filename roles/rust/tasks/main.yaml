@@ -1,0 +1,6 @@
+- name: Build binaries
+  command: cargo build --bins
+  args:
+    chdir: "{{ zuul_work_dir }}"
+  environment:
+    PATH: "{{ ansible_user_dir }}/.cargo/bin:{{ ansible_env.PATH }}"
