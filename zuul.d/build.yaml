@@ -7,4 +7,6 @@
       - zuul: opendev/zuul-jobs
 
 - project:
-    post-merge: *id001
+    post-merge:
+      jobs:
+        - featherofdespair-build
