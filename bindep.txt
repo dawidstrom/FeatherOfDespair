@@ -1,2 +1,1 @@
-make
-gcc
+binutils [platform:dpkg]
