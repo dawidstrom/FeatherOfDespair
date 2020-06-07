@@ -2,6 +2,8 @@
 
 Feather of Despair is a 2D horror game written in rust using the [piston](https://github.com/PistonDevelopers/piston) game engine.
 
+Build Status: [![BuildStatus](https://zuul.dhackz.org/api/tenant/dhackz/badge?project=dhackz/feather_of_despair&pipeline=post-merge)
+
 ### Build
 ```
 cargo run --bin map_of_despair      # To run the map editor.
