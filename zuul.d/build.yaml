@@ -3,6 +3,8 @@
     pre-run: playbooks/build/pre.yaml
     run: playbooks/build/run.yaml
     voting: false
+    roles:
+      - zuul: opendev/zuul-jobs
 
 - project:
     check: &id001
