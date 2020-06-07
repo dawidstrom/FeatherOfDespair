@@ -21,7 +21,7 @@ pub struct TileMap {
 }
 
 impl TileMap {
-    pub fn new() -> TileMap {
+    pub fn new(size: utils::Size) -> TileMap {
         let player = Entity{ 
             pos: utils::Position{ 
                 x: 5, 
@@ -31,7 +31,7 @@ impl TileMap {
         };
 
         let mut board = Board{
-            size: utils::Size{ width: 26, height: 15 },
+            size: size,
             scale: 30,
             blocking_map: Vec::new(),
         };
@@ -96,12 +96,14 @@ impl TileMap {
         }
     }
     
-    pub fn on_render(&mut self, event: Event, window: &mut PistonWindow) {
-        window.draw_2d(&event, |context, graphics, _device| {
+    pub fn on_render(&mut self,
+                     scale: i32,
+                     event: &Event,
+                     window: &mut PistonWindow) {
+        window.draw_2d(event, |context, graphics, _device| {
             // Clear screen with white-ish color.
             clear([0.9; 4], graphics);
 
-            //TODO: create method to draw sprite for entities.
             let player_sprite = [
                 (self.player.pos.x * self.board.scale) as f64,
                 (self.player.pos.y * self.board.scale) as f64,
@@ -131,20 +133,6 @@ impl TileMap {
                     graphics
                 );
             }
-
-            // Draw tile selection background.
-            let tile_panel = [
-                20.0 * self.board.scale as f64,
-                0.0,
-                6.0 * self.board.scale as f64,
-                (self.board.scale * self.board.size.height) as f64
-            ];
-            rectangle(
-                [0.0, 0.0, 0.0, 1.0], // black
-                tile_panel,
-                context.transform,
-                graphics
-            );
         });
     }
 
