@@ -19,8 +19,10 @@ Built using:
 ## Current state:
 
 **Game:**
+
 <img src="extra/game.0.3.0.gif" />
 
 **Map editor:**
+
 <img src="extra/map.editor.0.3.1.gif" />
 
