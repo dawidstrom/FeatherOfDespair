@@ -13,7 +13,7 @@
     path: "{{ rustup_tempfile.path }}"
 
 - name: Install rustup
-  command: "{{ rustup_tempfile.path }} -y"
+  shell: "{{ rustup_tempfile.path }} -y"
 
 - name: Install rust toolchains
   when: rust_toolchain_version
