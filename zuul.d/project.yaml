@@ -1,5 +1,0 @@
-- project:
-    check: &id001
-      jobs:
-        - noop
-    gate: *id001
