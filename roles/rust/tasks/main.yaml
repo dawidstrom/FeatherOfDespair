@@ -1,5 +1,5 @@
 - name: Build binaries
-  command: cargo build --bins
+  command: cargo build --bins --verbose
   args:
     chdir: "{{ zuul_work_dir }}"
   environment:
