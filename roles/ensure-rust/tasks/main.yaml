@@ -4,7 +4,7 @@
 
 - name: Get rustup install script
   get_url:
-    url: https://sh.rustup.rs | sh
+    url: https://sh.rustup.rs
     dest: "{{ rustup_tempfile.path }}"
 
 - name: Install rustup
