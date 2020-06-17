@@ -1,19 +1,13 @@
 use crate::entity::*;
 use crate::utils::*;
 
-use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
+use byteorder::{LittleEndian, ReadBytesExt};
 use std::{
-    fs::File,
-    io::{self, Read, Write},
+    io::{self, Read},
 };
 
 pub trait Movable {
-    fn move_dir(
-        &mut self,
-        steps:      i32,
-        direction:  Direction,
-        board:      &Board
-    ) -> ();
+    fn move_dir(&mut self, steps: i32, direction: Direction, board: &Board);
 }
 
 pub enum Direction {
@@ -23,10 +17,6 @@ pub enum Direction {
     Left,
 }
 
-pub enum Tile {
-    WALL = 1,
-}
-
 pub struct Board {
     pub size:           Size,
     pub scale:          i32,
@@ -34,7 +24,7 @@ pub struct Board {
 }
 
 impl Board {
-    pub fn readWall(reader: &mut impl Read) -> Option<Entity> {
+    pub fn read_wall(reader: &mut impl Read) -> Option<Entity> {
         if let (
             Ok(x), 
             Ok(y), 
@@ -63,7 +53,7 @@ impl Board {
 
         // Entities.
         let mut walls = Vec::<Entity>::new();
-        while let Some(wall) = Board::readWall(reader) {
+        while let Some(wall) = Board::read_wall(reader) {
             walls.push(wall);
         }
 
@@ -73,33 +63,14 @@ impl Board {
             blocking_map: walls,
         })
     }
-
-    pub fn write(&self, mut writer: impl byteorder::WriteBytesExt) {
-        // Board size.
-        writer.write_i32::<LittleEndian>(self.size.width);
-        writer.write_i32::<LittleEndian>(self.size.height);
-
-        // Board scale factor.
-        writer.write_i32::<LittleEndian>(self.scale);
-
-        // Entities.
-        for wall in self.blocking_map.iter() {
-            // Position.
-            writer.write_i32::<LittleEndian>(wall.pos.x);
-            writer.write_i32::<LittleEndian>(wall.pos.y);
-            // Is blocking.
-            writer.write_u8(wall.blocking as u8);
-        }
-    }
 }
 
 impl Movable for Entity {
-    fn move_dir(
-        &mut self,
-        steps:      i32,
-        direction:  Direction,
-        board:      &Board
-    ) -> () {
+    fn move_dir(&mut self,
+                steps: i32,
+                direction: Direction,
+                board: &Board) {
+
         let mut new_pos: Position;
 
         match direction {

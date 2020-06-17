@@ -5,8 +5,9 @@ pub struct Position {
 }
 
 impl Position {
-    pub fn square_distance(pos1: Position, pos2: Position) -> i32 {
-        (pos1.x-pos2.x) * (pos1.x-pos2.x) + (pos1.y-pos2.y) * (pos1.y-pos2.y)
+    pub fn distance(pos1: Position, pos2: Position) -> f64 {
+        (((pos1.x - pos2.x) as f64).powi(2) + 
+         ((pos1.y - pos2.y) as f64).powi(2)).sqrt()
     }
 }
 

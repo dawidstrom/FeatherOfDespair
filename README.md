@@ -16,13 +16,13 @@ Built using:
 * byteorder version 1.3.4
 
 ### Progress:
-~~Track progress on [trello](https://trello.com/b/JS9bzLP3/featherofdespair).~~
+Track progress on [github](https://github.com/dhackz/feather_of_despair/projects/1)
 
 ## Current state:
 
 **Game:**
 
-<img src="extra/game.0.3.0.gif" />
+<img src="extra/game.0.4.0.gif" />
 
 **Map editor:**
 
