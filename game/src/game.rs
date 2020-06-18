@@ -191,6 +191,7 @@ impl Game {
         
         // Start at pos.
         let mut start_pos = pos;
+        let mut last_pos = pos;
         let mut is_visible = true;
 
         // Sample "steps" times along the line formed between player and pos.
@@ -202,12 +203,41 @@ impl Game {
                      start_pos.x, start_pos.y
                 );
             }
+            
+            let dx = start_pos.x-last_pos.x;
+            let dy = start_pos.y-last_pos.y;
+
+            let mut wall_x = false;
+            let mut wall_y = false;
 
             // Check that point is not occupied by wall.
             for wall in self.board.blocking_map.iter() {
                 if wall.pos == start_pos {
                     is_visible = false;
+                    break;
                 }
+                
+                // Check if movement is horizontal.
+                // Note: assumes only 1 tile movement.
+                if start_pos != last_pos && dx.abs() + dy.abs() == 2 {
+                    // Check if neighbouring tiles are walls.
+                    if wall.pos.x == last_pos.x+dx && wall.pos.y == last_pos.y {
+                        wall_x = true;
+                    }
+                    if wall.pos.y == last_pos.y+dy && wall.pos.x == last_pos.x {
+                        wall_y = true;
+                    }
+
+                    if wall_x && wall_y {
+                        is_visible = false;
+                        break;
+                    }
+                }
+            }
+
+            // Update last visited position.
+            if start_pos != last_pos {
+                last_pos = start_pos;
             }
 
             // For drawing the path checked between player and debug position.
