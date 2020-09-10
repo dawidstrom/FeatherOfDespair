@@ -10,11 +10,24 @@ pub trait Movable {
     fn move_dir(&mut self, steps: i32, direction: Direction, board: &Board);
 }
 
-pub enum Direction {
-    Up,
-    Right,
-    Down,
-    Left,
+impl Player {
+    pub fn update(&mut self, board: &mut Board, elapsed: i64) {
+        match self.entity.move_timer.as_mut() {
+            Some(timer) => {
+                if timer.remaining > 0 {
+                    timer.remaining -= elapsed;
+                }
+
+                if let Some(dir) = self.entity.moving {
+                    if timer.remaining <= 0 {
+                        timer.remaining = timer.duration;
+                        self.entity.move_dir(1, dir, board);
+                    }
+                }
+            }
+            None => {}
+        }
+    }
 }
 
 pub struct Board {
@@ -38,6 +51,8 @@ impl Board {
             return Some(Entity{
                 pos: Position{ x,y },
                 blocking: blocking != 0,
+                moving: None,
+                move_timer: None,
             })
         }
         None

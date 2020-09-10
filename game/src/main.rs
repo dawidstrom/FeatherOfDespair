@@ -6,6 +6,7 @@ mod utils;
 extern crate piston_window;
 
 use piston_window::*;
+use std::time::*;
 
 fn main() {
     // Setup game.
@@ -23,14 +24,22 @@ fn main() {
             "Feather of Despair", window_size
         ).exit_on_esc(true).build().unwrap();
 
+    let mut now = Instant::now();
+
     // Main game loop.
     while let Some(event) = window.next() {
         // Handle input.
-        if let Some(Button::Keyboard(key)) = event.press_args() {
-            game.on_input(key);
+        if let Some(buttonArgs) = event.button_args() {
+            game.on_input(buttonArgs);
         }
 
+        let elapsed = now.elapsed().as_millis();
+        now = Instant::now();
+
         // Update game world.
+        game.on_update(elapsed as i64);
+
+        now = Instant::now();
 
         // Main draw loop.
         game.on_render(event, &mut window);

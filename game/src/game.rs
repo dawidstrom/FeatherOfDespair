@@ -43,6 +43,12 @@ impl Game {
                     y: 5,
                 },
                 blocking: false,
+                moving: None,
+                move_timer: Some(Timer {
+                    remaining: 0,
+                    duration: 100,
+                    looping: true
+                }),
             },
             max_hp:     100,
             current_hp: 100,
@@ -69,14 +75,32 @@ impl Game {
         }
     }
 
-    pub fn on_input(&mut self, key: Key) {
-        match key {
-            Key::W => self.player.entity.move_dir(1, Direction::Up,    &mut self.board),
-            Key::D => self.player.entity.move_dir(1, Direction::Right, &mut self.board),
-            Key::S => self.player.entity.move_dir(1, Direction::Down,  &mut self.board),
-            Key::A => self.player.entity.move_dir(1, Direction::Left,  &mut self.board),
-            _ => {},
+    pub fn on_input(&mut self, button_args: ButtonArgs) {
+        if let Button::Keyboard(key) = button_args.button {
+            if button_args.state == ButtonState::Press {
+                match key {
+                    Key::W => self.player.entity.moving = Some(Direction::Up),
+                    Key::D => self.player.entity.moving = Some(Direction::Right),
+                    Key::S => self.player.entity.moving = Some(Direction::Down),
+                    Key::A => self.player.entity.moving = Some(Direction::Left),
+                    _ => {},
+                }
+            }
+
+            if button_args.state == ButtonState::Release {
+                match key {
+                    Key::W => self.player.entity.moving = None,
+                    Key::D => self.player.entity.moving = None,
+                    Key::S => self.player.entity.moving = None,
+                    Key::A => self.player.entity.moving = None,
+                    _ => {},
+                }
+            }
         }
+    }
+
+    pub fn on_update(&mut self, elapsed: i64) {
+        self.player.update(&mut self.board, elapsed);
     }
                 
 
@@ -303,7 +327,7 @@ impl Game {
             // Draw player.
             Game::draw_player(self, &context, graphics);
 
-
+            // Draw debug.
             if self.debug.is_active {
                 Game::draw_debug(
                     self,
@@ -320,9 +344,11 @@ impl Game {
             if let Ok(new_board) = Board::load(&mut file) {
                 self.board = new_board;
                 println!("Tilemap {} loaded!", filename);
+            } else {
+                println!("Error parsing tilemap {}!", filename);
             }
-            println!("Error parsing tilemap {}!", filename);
+        } else {
+            println!("Unable to open {}!", filename);
         }
-        println!("Unable to open {}!", filename);
     }
 }
