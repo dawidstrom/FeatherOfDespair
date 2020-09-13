@@ -29,8 +29,8 @@ fn main() {
     // Main game loop.
     while let Some(event) = window.next() {
         // Handle input.
-        if let Some(buttonArgs) = event.button_args() {
-            game.on_input(buttonArgs);
+        if let Some(button_args) = event.button_args() {
+            game.on_input(button_args);
         }
 
         let elapsed = now.elapsed().as_millis();
@@ -38,8 +38,6 @@ fn main() {
 
         // Update game world.
         game.on_update(elapsed as i64);
-
-        now = Instant::now();
 
         // Main draw loop.
         game.on_render(event, &mut window);

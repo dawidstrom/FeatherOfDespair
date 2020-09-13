@@ -43,7 +43,7 @@ impl Game {
                     y: 5,
                 },
                 blocking: false,
-                moving: None,
+                moving: Direction::default(),
                 move_timer: Some(Timer {
                     remaining: 0,
                     duration: 100,
@@ -79,20 +79,20 @@ impl Game {
         if let Button::Keyboard(key) = button_args.button {
             if button_args.state == ButtonState::Press {
                 match key {
-                    Key::W => self.player.entity.moving = Some(Direction::Up),
-                    Key::D => self.player.entity.moving = Some(Direction::Right),
-                    Key::S => self.player.entity.moving = Some(Direction::Down),
-                    Key::A => self.player.entity.moving = Some(Direction::Left),
+                    Key::W => self.player.entity.moving.up = true,
+                    Key::D => self.player.entity.moving.right = true,
+                    Key::S => self.player.entity.moving.down = true,
+                    Key::A => self.player.entity.moving.left = true,
                     _ => {},
                 }
             }
 
             if button_args.state == ButtonState::Release {
                 match key {
-                    Key::W => self.player.entity.moving = None,
-                    Key::D => self.player.entity.moving = None,
-                    Key::S => self.player.entity.moving = None,
-                    Key::A => self.player.entity.moving = None,
+                    Key::W => self.player.entity.moving.up = false,
+                    Key::D => self.player.entity.moving.right = false,
+                    Key::S => self.player.entity.moving.down = false,
+                    Key::A => self.player.entity.moving.left = false,
                     _ => {},
                 }
             }

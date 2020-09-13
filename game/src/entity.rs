@@ -1,17 +1,34 @@
 use crate::utils::Position;
 
 #[derive(PartialEq,Clone,Copy)]
-pub enum Direction {
-    Up,
-    Right,
-    Down,
-    Left,
+pub struct Direction {
+    pub up: bool,
+    pub right: bool,
+    pub down: bool,
+    pub left: bool,
+}
+
+impl Direction {
+    pub fn is_moving(self) -> bool {
+        self.up || self.right || self.down || self.left
+    }
+}
+
+impl Default for Direction {
+    fn default() -> Self {
+        Direction{
+            up: false,
+            right: false,
+            down: false,
+            left: false,
+        }
+    }
 }
 
 pub struct Entity {
     pub pos: Position,
     pub blocking: bool,
-    pub moving: Option<Direction>,
+    pub moving: Direction,
     pub move_timer: Option<Timer>,
 }
 

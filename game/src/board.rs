@@ -7,7 +7,7 @@ use std::{
 };
 
 pub trait Movable {
-    fn move_dir(&mut self, steps: i32, direction: Direction, board: &Board);
+    fn move_dir(&mut self, board: &Board);
 }
 
 impl Player {
@@ -18,10 +18,10 @@ impl Player {
                     timer.remaining -= elapsed;
                 }
 
-                if let Some(dir) = self.entity.moving {
+                if self.entity.moving.is_moving() {
                     if timer.remaining <= 0 {
                         timer.remaining = timer.duration;
-                        self.entity.move_dir(1, dir, board);
+                        self.entity.move_dir(board);
                     }
                 }
             }
@@ -51,7 +51,7 @@ impl Board {
             return Some(Entity{
                 pos: Position{ x,y },
                 blocking: blocking != 0,
-                moving: None,
+                moving: Direction::default(),
                 move_timer: None,
             })
         }
@@ -82,39 +82,19 @@ impl Board {
 
 impl Movable for Entity {
     fn move_dir(&mut self,
-                steps: i32,
-                direction: Direction,
                 board: &Board) {
+
+        let &dir = &self.moving;
+        let x = dir.right as i32 - dir.left as i32;
+        let y = dir.down as i32 - dir.up as i32;
 
         let mut new_pos: Position;
 
-        match direction {
-            Direction::Up => {
-                new_pos = Position {
-                    x: self.pos.x,
-                    y: std::cmp::max(0, self.pos.y-steps),
-                };
-            },
-            Direction::Right => {
-                new_pos = Position {
-                    x: std::cmp::min(board.size.width-1, self.pos.x+steps),
-                    y: self.pos.y,
-                };
-
-            },
-            Direction::Down => {
-                new_pos = Position {
-                    x: self.pos.x,
-                    y: std::cmp::min(board.size.height-1, self.pos.y+steps),
-                };
-            },
-            Direction::Left => {
-                new_pos = Position {
-                    x: std::cmp::max(0, self.pos.x-steps),
-                    y: self.pos.y,
-                };
-            },
-        }
+        use std::cmp::{min,max};
+        new_pos = Position {
+            x: max(0,min(self.pos.x + x, board.size.width-1)),
+            y: max(0,min(self.pos.y + y, board.size.height-1)),
+        };
 
         for entity in board.blocking_map.iter() {
             if entity.blocking && entity.pos == new_pos {
