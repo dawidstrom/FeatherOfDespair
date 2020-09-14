@@ -13,6 +13,8 @@ use std::{
     fs::File,
 };
 
+static RENDER_DISTANCE: f32 = 10.0;
+
 pub struct Game {
     pub player: Player,
     pub board: Board,
@@ -299,7 +301,15 @@ impl Game {
 
                 // If visible, draw ground.
                 if Game::is_visible(self, pos) {
-                    Game::draw_block(self, &pos, [1.0; 4], ctx, graphics);
+                    // Reduce light intensity based on distance from player.
+                    let distance = utils::Position::distance(self.player.entity.pos, pos) as f32;
+                    let intensity = 1.0-distance/RENDER_DISTANCE;
+
+                    // Workaround since cmp::max doesn't work for f32...
+                    let mut color = 0.0;
+                    if intensity > 0.0 { color = intensity; }
+
+                    Game::draw_block(self, &pos, [color; 4], ctx, graphics);
                 }
             }
         }
@@ -313,15 +323,18 @@ impl Game {
             // Draw white ground on areas visible from torches.
             Game::draw_light(self, &context, graphics);
 
-            // Draw walls.
+            // Draw walls if visible from player.
             for wall in self.board.blocking_map.iter() {
-                Game::draw_block(
-                    self,
-                    &wall.pos,
-                    [0.4, 0.4, 0.4, 1.0], // dark-grey
-                    &context,
-                    graphics,
-                );
+                let distance = utils::Position::distance(self.player.entity.pos, wall.pos) as f32;
+                if distance < RENDER_DISTANCE {
+                    Game::draw_block(
+                        self,
+                        &wall.pos,
+                        [0.4, 0.4, 0.4, 1.0], // dark-grey
+                        &context,
+                        graphics,
+                    );
+                }
             }
             
             // Draw player.
