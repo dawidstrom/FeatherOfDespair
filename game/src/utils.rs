@@ -11,7 +11,7 @@ impl Position {
     }
 }
 
-pub struct Size {
+pub struct Rect {
     pub width:  i32,
     pub height: i32,
 }

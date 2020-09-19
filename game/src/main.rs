@@ -2,6 +2,7 @@ mod game;
 mod board;
 mod entity;
 mod utils;
+mod camera;
 
 extern crate piston_window;
 
@@ -15,8 +16,8 @@ fn main() {
     
     // Setup piston.
     let window_size = [
-        (game.board.size.width  * game.board.scale) as f64,
-        (game.board.size.height * game.board.scale) as f64
+        (game.camera.size.width  * game.board.scale) as f64,
+        (game.camera.size.height * game.board.scale) as f64
     ];
 
     let mut window: PistonWindow =

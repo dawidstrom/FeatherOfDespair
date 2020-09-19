@@ -5,9 +5,11 @@ use piston_window::*;
 use crate::board;
 use crate::entity;
 use crate::utils;
+use crate::camera;
 
 use board::*;
 use entity::*;
+use camera::*;
 
 use std::{
     fs::File,
@@ -16,17 +18,18 @@ use std::{
 static RENDER_DISTANCE: f32 = 10.0;
 
 pub struct Game {
-    pub player: Player,
-    pub board: Board,
-    pub lights: Vec<Entity>,
-    pub debug: Debug,
+    pub player:         Player,
+    pub board:          Board,
+    pub lights:         Vec<Entity>,
+    pub debug:          Debug,
+    pub camera:         Camera,
 }
 
 pub struct Debug {
-    pub pos: utils::Position,
-    pub is_active: bool,
-    pub path: Vec<utils::Position>,
-    pub sample_points: Vec<[f64;2]>
+    pub pos:            utils::Position,
+    pub is_active:      bool,
+    pub path:           Vec<utils::Position>,
+    pub sample_points:  Vec<[f64;2]>
 }
 
 impl Debug {
@@ -57,7 +60,7 @@ impl Game {
         };
 
         let board = Board{
-            size: utils::Size{ width: 20, height: 15 },
+            size: utils::Rect{ width: 20, height: 15 },
             scale: 30,
             blocking_map: Vec::new(),
         };
@@ -73,7 +76,11 @@ impl Game {
             player: player,
             board: board,
             lights: Vec::new(),
-            debug: debug
+            debug: debug,
+            camera: Camera{
+                pos: utils::Position{ x: 0, y: 0 },
+                size: utils::Rect{ width: 15, height: 13 },
+            },
         }
     }
 
@@ -152,10 +159,12 @@ impl Game {
                       color: [f32; 4],
                       ctx: &Context,
                       graphics: &mut G2d) {
+        let x = pos.x - self.camera.pos.x;
+        let y = pos.y - self.camera.pos.y;
 
         let sprite = [
-            (pos.x * self.board.scale) as f64,
-            (pos.y * self.board.scale) as f64,
+            (x * self.board.scale) as f64,
+            (y * self.board.scale) as f64,
             self.board.scale as f64,
             self.board.scale as f64,
         ];
@@ -295,8 +304,8 @@ impl Game {
         self.debug.clear();
 
         // For each point on board...
-        for x in 0..self.board.size.width {
-            for y in 0..self.board.size.height {
+        for x in self.camera.pos.x..(self.camera.pos.x+self.camera.size.width) {
+            for y in self.camera.pos.y..(self.camera.pos.y+self.camera.size.height) {
                 let pos = utils::Position{x,y};
 
                 // If visible, draw ground.
@@ -309,10 +318,63 @@ impl Game {
                     let mut color = 0.0;
                     if intensity > 0.0 { color = intensity; }
 
-                    Game::draw_block(self, &pos, [color; 4], ctx, graphics);
+                    Game::draw_block(self, &pos, [color, color, color, 1.0], ctx, graphics);
                 }
             }
         }
+    }
+
+    pub fn draw_wall(&self,
+                     light_intensity: f32,
+                     wall: &Entity,
+                     context: &Context,
+                     graphics: &mut G2d) {
+        let mut color = 0.4;
+        // Workaround since cmp::max doesn't work for f32...
+        if light_intensity > 0.0 { color *= light_intensity; }
+
+        Game::draw_block(
+            self,
+            &wall.pos,
+            [color, color, color, 1.0], // dark-grey
+            &context,
+            graphics,
+        );
+    }
+
+    pub fn draw_wall_if_visible(&self,
+                             wall: &Entity,
+                             context: &Context,
+                             graphics: &mut G2d) {
+        let distance = utils::Position::distance(self.player.entity.pos, wall.pos) as f32;
+        let light_intensity = 1.0-distance/RENDER_DISTANCE;
+
+        if distance < RENDER_DISTANCE {
+            let mut draw_pos = Position{
+                x: std::cmp::max(self.player.entity.pos.x-(self.camera.size.width/2) as i32, 0),
+                y: std::cmp::max(self.player.entity.pos.y-(self.camera.size.height/2) as i32, 0),
+            };
+            let dx = self.board.size.width - self.camera.size.width;
+            let dy = self.board.size.height - self.camera.size.height;
+            draw_pos.x = std::cmp::min(draw_pos.x, dx);
+            draw_pos.y = std::cmp::min(draw_pos.y, dy);
+
+            // TODO: Check if wall is in camera range.
+            self.draw_wall(light_intensity, wall, context, graphics);
+        }
+    }
+
+    pub fn calculate_camera_offset(&mut self) {
+        let mut camera_offset = utils::Position{
+            x: std::cmp::max(self.player.entity.pos.x-(self.camera.size.width/2) as i32, 0),
+            y: std::cmp::max(self.player.entity.pos.y-(self.camera.size.height/2) as i32, 0),
+        };
+        let dx = self.board.size.width - self.camera.size.width;
+        let dy = self.board.size.height - self.camera.size.height;
+        camera_offset.x = std::cmp::min(camera_offset.x, dx);
+        camera_offset.y = std::cmp::min(camera_offset.y, dy);
+
+        self.camera.pos = camera_offset;
     }
 
     pub fn on_render(&mut self, event: Event, window: &mut PistonWindow) {
@@ -320,30 +382,23 @@ impl Game {
             // Clear screen with black.
             clear([0.0; 4], graphics);
 
+            // Calculate camera offset.
+            self.calculate_camera_offset();
+
             // Draw white ground on areas visible from torches.
-            Game::draw_light(self, &context, graphics);
+            self.draw_light(&context, graphics);
 
             // Draw walls if visible from player.
             for wall in self.board.blocking_map.iter() {
-                let distance = utils::Position::distance(self.player.entity.pos, wall.pos) as f32;
-                if distance < RENDER_DISTANCE {
-                    Game::draw_block(
-                        self,
-                        &wall.pos,
-                        [0.4, 0.4, 0.4, 1.0], // dark-grey
-                        &context,
-                        graphics,
-                    );
-                }
+                self.draw_wall_if_visible(wall, &context, graphics);
             }
             
             // Draw player.
-            Game::draw_player(self, &context, graphics);
+            self.draw_player(&context, graphics);
 
             // Draw debug.
             if self.debug.is_active {
-                Game::draw_debug(
-                    self,
+                self.draw_debug(
                     &context,
                     graphics,
                 );

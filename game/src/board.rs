@@ -31,7 +31,7 @@ impl Player {
 }
 
 pub struct Board {
-    pub size:           Size,
+    pub size:           Rect,
     pub scale:          i32,
     pub blocking_map:   Vec<Entity>,
 }
@@ -73,7 +73,7 @@ impl Board {
         }
 
         Ok(Board {
-            size: Size{ width, height },
+            size: Rect{ width, height },
             scale,
             blocking_map: walls,
         })
