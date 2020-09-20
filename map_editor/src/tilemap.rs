@@ -47,44 +47,54 @@ impl TileMap {
         }
     }
 
+    pub fn place_block_if_empty(&mut self, [x,y]: [f64;2]) {
+        let clicked_pos = utils::Position{
+            x: x as i32 / self.board.scale,
+            y: y as i32 / self.board.scale,
+        };
+
+        if self.board.blocking_map.iter().any(|entity| entity.pos == clicked_pos) {
+            println!("Position already occupied!");
+        } else { // Position isn't occupied.
+            println!("Spawn new entity on board position {} {}", clicked_pos.x, clicked_pos.y);
+
+            self.board.blocking_map.push(
+                Entity{
+                    pos: utils::Position{
+                        x: clicked_pos.x,
+                        y: clicked_pos.y,
+                    }, 
+                    blocking: true
+                },
+            );
+        }
+    }
+
+    pub fn remove_block_if_occupied(&mut self, [x,y]: [f64;2]) {
+        let clicked_pos = utils::Position{
+            x: x as i32 / self.board.scale,
+            y: y as i32 / self.board.scale,
+        };
+
+        if let Some(index) = self.board.blocking_map.iter().position(|entity| entity.pos == clicked_pos) {
+            self.board.blocking_map.remove(index);
+        } else { // Position isn't occupied.
+            println!("There is not tile in this position!");
+        }
+    }
+
     pub fn on_mouse_input(&mut self, button: MouseButton, [x,y]: [f64;2]) {
         println!("Clicked position {} {}", x, y);
-        match button {
-            MouseButton::Left => {
-                let clicked_pos = utils::Position{
-                    x: x as i32 / self.board.scale,
-                    y: y as i32 / self.board.scale,
-                };
-
-                if self.board.blocking_map.iter().any(|entity| entity.pos == clicked_pos) {
-                    println!("Position already occupied!");
-                } else { // Position isn't occupied.
-                    println!("Spawn new entity on board position {} {}", clicked_pos.x, clicked_pos.y);
-
-                    self.board.blocking_map.push(
-                        Entity{
-                            pos: utils::Position{
-                                x: clicked_pos.x,
-                                y: clicked_pos.y,
-                            }, 
-                            blocking: true
-                        },
-                    );
-                }
-            },
-            MouseButton::Right => {
-                let clicked_pos = utils::Position{
-                    x: x as i32 / self.board.scale,
-                    y: y as i32 / self.board.scale,
-                };
-
-                if let Some(index) = self.board.blocking_map.iter().position(|entity| entity.pos == clicked_pos) {
-                    self.board.blocking_map.remove(index);
-                } else { // Position isn't occupied.
-                    println!("There is not tile in this position!");
-                }
-            },
-            _ => {},
+        if x as i32 <= self.board.size.width * self.board.scale {
+            match button {
+                MouseButton::Left => {
+                    self.place_block_if_empty([x,y]);
+                },
+                MouseButton::Right => {
+                    self.remove_block_if_occupied([x,y]);
+                },
+                _ => {},
+            }
         }
     }
 
@@ -97,7 +107,6 @@ impl TileMap {
     }
     
     pub fn on_render(&mut self,
-                     scale: i32,
                      event: &Event,
                      window: &mut PistonWindow) {
         window.draw_2d(event, |context, graphics, _device| {

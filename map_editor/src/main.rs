@@ -14,14 +14,15 @@ fn main() {
     let mut tilemap = tilemap::TileMap::new(
         utils::Size{width:20,height:15}
     );
-    let mut control_panel = control_panel::ControlPanel::new(
-        utils::Position{ x: tilemap.board.size.width, y: 0 },
-        utils::Size{ width: 6, height: tilemap.board.size.height },
-    );
-    
+    let mut control_panel = control_panel::ControlPanel{
+        pos: utils::Position{ x: tilemap.board.size.width, y: 0 },
+        size: utils::Size{ width: 6, height: tilemap.board.size.height },
+        scale: scale,
+    };
+
     // Setup piston.
     let window_size = [
-        ((tilemap.board.size.width+control_panel.size.width) * scale) as f64,
+        ((tilemap.board.size.width+control_panel.size.width) * control_panel.scale) as f64,
         (tilemap.board.size.height * scale) as f64
     ];
 
@@ -42,13 +43,15 @@ fn main() {
             mouse_position = pos;
         }
         if let Some(Button::Mouse(button)) = event.press_args() {
+            // Check if tilemap or control panel pressed.
+            control_panel.on_mouse_input(button, mouse_position);
             tilemap.on_mouse_input(button, mouse_position);
         }
 
         // Update game world.
 
         // Main draw loop.
-        tilemap.on_render(scale, &event, &mut window);
-        control_panel.on_render(scale, &event, &mut window);
+        tilemap.on_render(&event, &mut window);
+        control_panel.on_render(&event, &mut window);
     }
 }
