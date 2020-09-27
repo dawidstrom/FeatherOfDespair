@@ -1,4 +1,5 @@
 use crate::utils::Position;
+use crate::tile::Tile;
 
 #[derive(PartialEq,Clone,Copy)]
 pub struct Direction {
@@ -27,6 +28,7 @@ impl Default for Direction {
 
 pub struct Entity {
     pub pos: Position,
+    pub tile_type: Tile,
     pub blocking: bool,
     pub moving: Direction,
     pub move_timer: Option<Timer>,

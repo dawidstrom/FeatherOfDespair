@@ -5,47 +5,54 @@ use piston_window::*;
 use crate::board;
 use crate::entity;
 use crate::utils;
+use crate::tile;
 
 use board::*;
 use entity::*;
-use utils::*;
+use tile::*;
 
 use std::{
     fs::File,
-    io::{self, Read, Write},
 };
 
 pub struct TileMap {
     pub player: Entity,
     pub board: Board,
+    pub selected_tile: Tile,
 }
 
 impl TileMap {
-    pub fn new(size: utils::Size) -> TileMap {
+    pub fn new(size: utils::Rect) -> TileMap {
         let player = Entity{ 
             pos: utils::Position{ 
                 x: 5, 
                 y: 5,
             },
             blocking: false,
+            tile: Tile::Player,
         };
 
-        let mut board = Board{
+        let board = Board{
             size: size,
             scale: 30,
             blocking_map: Vec::new(),
         };
 
-        // Add one wall to board.
-        board.blocking_map.push(
-            Entity{ pos: utils::Position{ x:1, y:1 }, blocking: true },
-        );
-
         TileMap {
             player: player,
             board: board,
+            selected_tile: Tile::Wall,
         }
     }
+
+	pub fn on_keyboard_input(&mut self, key: Key) {
+		match key {
+			Key::P => { self.write_map(String::from("default.map")) },
+			Key::L => { self.load_map(String::from("default.map")) },
+			_ => {},
+		}
+	}
+
 
     pub fn place_block_if_empty(&mut self, [x,y]: [f64;2]) {
         let clicked_pos = utils::Position{
@@ -64,7 +71,8 @@ impl TileMap {
                         x: clicked_pos.x,
                         y: clicked_pos.y,
                     }, 
-                    blocking: true
+                    blocking: true,
+                    tile: self.selected_tile,
                 },
             );
         }
@@ -97,22 +105,11 @@ impl TileMap {
             }
         }
     }
-
-    pub fn on_keyboard_input(&mut self, key: Key) {
-        match key {
-            Key::P => { self.write_map(String::from("default.map")) },
-            Key::L => { self.load_map(String::from("default.map")) },
-            _ => {},
-        }
-    }
     
     pub fn on_render(&mut self,
                      event: &Event,
                      window: &mut PistonWindow) {
         window.draw_2d(event, |context, graphics, _device| {
-            // Clear screen with white-ish color.
-            clear([0.9; 4], graphics);
-
             let player_sprite = [
                 (self.player.pos.x * self.board.scale) as f64,
                 (self.player.pos.y * self.board.scale) as f64,
@@ -135,8 +132,15 @@ impl TileMap {
                     self.board.scale as f64,
                 ];
 
+                let color;
+                match wall.tile {
+                    Tile::Wall => color = [0.4, 0.4, 0.4, 1.0],
+                    Tile::Grass => color = [0.0, 1.0, 0.0, 1.0],
+                    Tile::Player => color = [0.8, 0.0, 0.0, 1.0],
+                }
+
                 rectangle(
-                    [0.4, 0.4, 0.4, 1.0], // dark-grey
+                    color,
                     wall_sprite,
                     context.transform,
                     graphics
@@ -148,13 +152,15 @@ impl TileMap {
     pub fn load_map(&mut self, filename: String) {
         println!("Loading tilemap {}...", filename);
         if let Ok(mut file) = File::open(&filename) {
-            if let Ok(mut new_board) = Board::load(&mut file) {
+            if let Ok(new_board) = Board::load(&mut file) {
                 self.board = new_board;
                 println!("Tilemap {} loaded!", filename);
+            } else {
+                println!("Error parsing tilemap {}!", filename);
             }
-            println!("Error parsing tilemap {}!", filename);
+        } else {
+            println!("Unable to open {}!", filename);
         }
-        println!("Unable to open {}!", filename);
     }
 
     pub fn write_map(&mut self, mut filename: String) {

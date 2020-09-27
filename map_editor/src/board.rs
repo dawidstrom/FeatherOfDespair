@@ -1,14 +1,14 @@
 use crate::entity::*;
 use crate::utils::*;
+use crate::tile::*;
 
-use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
+use byteorder::{LittleEndian, ReadBytesExt};
 use std::{
-    fs::File,
-    io::{self, Read, Write},
+    io::{self, Read},
 };
 
 pub struct Board {
-    pub size:           Size,
+    pub size:           Rect,
     pub scale:          i32,
     pub blocking_map:   Vec<Entity>,
 }
@@ -18,16 +18,19 @@ impl Board {
         if let (
             Ok(x), 
             Ok(y), 
-            Ok(blocking)
+            Ok(blocking),
+            Ok(tile_type),
         ) = (
             reader.read_i32::<LittleEndian>(),
             reader.read_i32::<LittleEndian>(),
-            reader.read_u8()
+            reader.read_u8(),
+            reader.read_u8(),
         )
         {
             return Some(Entity{
                 pos: Position{ x,y },
                 blocking: blocking != 0,
+                tile: Tile::from_u8(tile_type),
             })
         }
         None
@@ -42,33 +45,56 @@ impl Board {
         let scale = reader.read_i32::<LittleEndian>().unwrap();
 
         // Entities.
-        let mut walls = Vec::<Entity>::new();
-        while let Some(wall) = Board::read_wall(reader) {
-            walls.push(wall);
+        let mut tiles = Vec::<Entity>::new();
+        while let Some(tile) = Board::read_wall(reader) {
+            tiles.push(tile);
         }
 
         Ok(Board {
-            size: Size{ width, height },
+            size: Rect{ width, height },
             scale,
-            blocking_map: walls,
+            blocking_map: tiles,
         })
     }
 
     pub fn write(&self, mut writer: impl byteorder::WriteBytesExt) {
         // Board size.
-        writer.write_i32::<LittleEndian>(self.size.width);
-        writer.write_i32::<LittleEndian>(self.size.height);
-
+        if let Err(e) = writer.write_i32::<LittleEndian>(self.size.width) {
+            println!("Failed to write width, {:?}.", e);
+            return;
+        }
+        if let Err(e) = writer.write_i32::<LittleEndian>(self.size.height) {
+            println!("Failed to write height, {:?}.", e);
+            return;
+        }
+        
         // Board scale factor.
-        writer.write_i32::<LittleEndian>(self.scale);
+        if let Err(e) = writer.write_i32::<LittleEndian>(self.scale) {
+            println!("Failed to write scale, {:?}.", e);
+            return;
+        }
 
         // Entities.
-        for wall in self.blocking_map.iter() {
+        for entity in self.blocking_map.iter() {
             // Position.
-            writer.write_i32::<LittleEndian>(wall.pos.x);
-            writer.write_i32::<LittleEndian>(wall.pos.y);
+            if let Err(e) = writer.write_i32::<LittleEndian>(entity.pos.x) {
+                println!("Failed to write entity x-position. {:?}.", e);
+                return;
+            }
+            if let Err(e) = writer.write_i32::<LittleEndian>(entity.pos.y) {
+                println!("Failed to write entity y-position. {:?}.", e);
+                return;
+            }
             // Is blocking.
-            writer.write_u8(wall.blocking as u8);
+            if let Err(e) = writer.write_u8(entity.blocking as u8) {
+                println!("Failed to write if entity is blocking. {:?}.", e);
+                return;
+            }
+            // Tile type.
+            if let Err(e) = writer.write_u8(entity.tile as u8) {
+                println!("Failed to write entity tile type. {:?}.", e);
+                return;
+            }
         }
     }
 }

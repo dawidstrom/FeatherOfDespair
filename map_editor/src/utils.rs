@@ -4,7 +4,8 @@ pub struct Position {
     pub y: i32,
 }
 
-pub struct Size {
+#[derive(Clone,Copy)]
+pub struct Rect {
     pub width:  i32,
     pub height: i32,
 }

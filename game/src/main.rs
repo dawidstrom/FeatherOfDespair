@@ -3,8 +3,10 @@ mod board;
 mod entity;
 mod utils;
 mod camera;
+mod tile;
 
 extern crate piston_window;
+#[macro_use] extern crate enum_primitive;
 
 use piston_window::*;
 use std::time::*;

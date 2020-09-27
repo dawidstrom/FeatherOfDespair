@@ -6,6 +6,7 @@ use crate::board;
 use crate::entity;
 use crate::utils;
 use crate::camera;
+use crate::tile::Tile;
 
 use board::*;
 use entity::*;
@@ -47,6 +48,7 @@ impl Game {
                     x: 5, 
                     y: 5,
                 },
+                tile_type: Tile::Player,
                 blocking: false,
                 moving: Direction::default(),
                 move_timer: Some(Timer {
@@ -329,14 +331,23 @@ impl Game {
                      wall: &Entity,
                      context: &Context,
                      graphics: &mut G2d) {
-        let mut color = 0.4;
+        let mut color = [0.0, 0.0, 1.0, 1.0];
+        match wall.tile_type {
+            Tile::Player => color = [1.0, 0.0, 0.0, 1.0],
+            Tile::Grass => color = [0.0, 1.0, 0.0, 1.0],
+            Tile::Wall => color = [0.4, 0.4, 0.4, 1.0],
+        };
         // Workaround since cmp::max doesn't work for f32...
-        if light_intensity > 0.0 { color *= light_intensity; }
+        if light_intensity > 0.0 {
+            color[0] *= light_intensity;
+            color[1] *= light_intensity;
+            color[2] *= light_intensity;
+        }
 
         Game::draw_block(
             self,
             &wall.pos,
-            [color, color, color, 1.0], // dark-grey
+            color,
             &context,
             graphics,
         );

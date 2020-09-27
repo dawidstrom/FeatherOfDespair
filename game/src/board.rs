@@ -1,5 +1,6 @@
 use crate::entity::*;
 use crate::utils::*;
+use crate::tile::*;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use std::{
@@ -41,15 +42,18 @@ impl Board {
         if let (
             Ok(x), 
             Ok(y), 
-            Ok(blocking)
+            Ok(blocking),
+            Ok(tile_type),
         ) = (
             reader.read_i32::<LittleEndian>(),
             reader.read_i32::<LittleEndian>(),
-            reader.read_u8()
+            reader.read_u8(),
+            reader.read_u8(),
         )
         {
             return Some(Entity{
                 pos: Position{ x,y },
+                tile_type: Tile::from_u8(tile_type),
                 blocking: blocking != 0,
                 moving: Direction::default(),
                 move_timer: None,
@@ -67,15 +71,15 @@ impl Board {
         let scale = reader.read_i32::<LittleEndian>().unwrap();
 
         // Entities.
-        let mut walls = Vec::<Entity>::new();
-        while let Some(wall) = Board::read_wall(reader) {
-            walls.push(wall);
+        let mut tiles = Vec::<Entity>::new();
+        while let Some(tile) = Board::read_wall(reader) {
+            tiles.push(tile);
         }
 
         Ok(Board {
             size: Rect{ width, height },
             scale,
-            blocking_map: walls,
+            blocking_map: tiles,
         })
     }
 }

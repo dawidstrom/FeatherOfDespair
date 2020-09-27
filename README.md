@@ -22,9 +22,9 @@ Track progress on [github](https://github.com/dhackz/feather_of_despair/projects
 
 **Game:**
 
-<img src="extra/game.0.9.0.gif" />
+<img src="extra/game.0.10.0.gif" />
 
 **Map editor:**
 
-<img src="extra/map.editor.0.3.2.gif" />
+<img src="extra/map.editor.0.4.0.gif" />
 
