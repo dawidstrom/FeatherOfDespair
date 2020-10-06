@@ -11,10 +11,6 @@ pub enum Tile {
 }
 
 impl Tile {
-    pub fn next(self) -> Tile {
-        Tile::from_u8(self as u8 + 1)
-    }
-
     pub fn from_u8(tile_type: u8) -> Tile {
         match FromPrimitive::from_u8(tile_type) {
             Some(next_tile) => next_tile,

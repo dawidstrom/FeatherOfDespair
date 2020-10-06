@@ -32,9 +32,9 @@ impl Player {
 }
 
 pub struct Board {
-    pub size:           Rect,
-    pub scale:          i32,
-    pub blocking_map:   Vec<Entity>,
+    pub size:       Rect,
+    pub scale:      i32,
+    pub entities:   Vec<Entity>,
 }
 
 impl Board {
@@ -79,7 +79,7 @@ impl Board {
         Ok(Board {
             size: Rect{ width, height },
             scale,
-            blocking_map: tiles,
+            entities: tiles,
         })
     }
 }
@@ -100,7 +100,7 @@ impl Movable for Entity {
             y: max(0,min(self.pos.y + y, board.size.height-1)),
         };
 
-        for entity in board.blocking_map.iter() {
+        for entity in board.entities.iter() {
             if entity.blocking && entity.pos == new_pos {
                 new_pos = self.pos;
             }

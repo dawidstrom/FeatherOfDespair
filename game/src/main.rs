@@ -15,6 +15,7 @@ fn main() {
     // Setup game.
     let mut game = game::Game::new();
     game.load_map(String::from("default.map"));
+//    game.debug.is_active = true;
     
     // Setup piston.
     let window_size = [

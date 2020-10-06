@@ -12,9 +12,7 @@ use board::*;
 use entity::*;
 use camera::*;
 
-use std::{
-    fs::File,
-};
+use std::fs::File;
 
 static RENDER_DISTANCE: f32 = 10.0;
 
@@ -64,21 +62,21 @@ impl Game {
         let board = Board{
             size: utils::Rect{ width: 20, height: 15 },
             scale: 30,
-            blocking_map: Vec::new(),
+            entities: Vec::new(),
         };
 
         let debug = Debug{
-            pos: utils::Position{ x: 11, y: 1 },
+            pos: utils::Position{ x: 7, y: 5 },
             is_active: false,
             path: Vec::new(),
             sample_points: Vec::new()
         };
         
         Game {
-            player: player,
-            board: board,
+            player,
+            board,
             lights: Vec::new(),
-            debug: debug,
+            debug,
             camera: Camera{
                 pos: utils::Position{ x: 0, y: 0 },
                 size: utils::Rect{ width: 15, height: 13 },
@@ -86,26 +84,23 @@ impl Game {
         }
     }
 
+    pub fn update_key(&mut self, key: &Key, is_pressed: bool) {
+        match key {
+            Key::W => self.player.entity.moving.up = is_pressed,
+            Key::D => self.player.entity.moving.right = is_pressed,
+            Key::S => self.player.entity.moving.down = is_pressed,
+            Key::A => self.player.entity.moving.left = is_pressed,
+            _ => {},
+        }
+    }
+
     pub fn on_input(&mut self, button_args: ButtonArgs) {
         if let Button::Keyboard(key) = button_args.button {
             if button_args.state == ButtonState::Press {
-                match key {
-                    Key::W => self.player.entity.moving.up = true,
-                    Key::D => self.player.entity.moving.right = true,
-                    Key::S => self.player.entity.moving.down = true,
-                    Key::A => self.player.entity.moving.left = true,
-                    _ => {},
-                }
+                self.update_key(&key, true);
             }
-
             if button_args.state == ButtonState::Release {
-                match key {
-                    Key::W => self.player.entity.moving.up = false,
-                    Key::D => self.player.entity.moving.right = false,
-                    Key::S => self.player.entity.moving.down = false,
-                    Key::A => self.player.entity.moving.left = false,
-                    _ => {},
-                }
+                self.update_key(&key, false);
             }
         }
     }
@@ -113,7 +108,6 @@ impl Game {
     pub fn on_update(&mut self, elapsed: i64) {
         self.player.update(&mut self.board, elapsed);
     }
-                
 
     pub fn draw_debug(&self, ctx: &Context, graphics: &mut G2d) {
 
@@ -188,15 +182,97 @@ impl Game {
         );
     }
 
-    pub fn is_visible(&mut self, pos: utils::Position) -> bool {
+    /// Returns whether start_pos is in line of sight of end_pos.
+    fn is_in_line_of_sight(&self,
+                           number_of_samples: usize,
+                           x_step: f64,
+                           y_step: f64,
+                           start_pos: utils::Position) -> bool {
+        // Start position.
+        let mut current_pos = self.player.entity.pos;
+        let mut last_pos = self.player.entity.pos;
+        let mut is_visible = true;
+
+        // Sample for blocking tiles along line of sight between start and end 
+        // position.
+        for i in 0..number_of_samples as i32 {
+
+            // Used to check if difference between sample points are diagonal.
+            // let dx = start_pos.x-last_pos.x;
+            // let dy = start_pos.y-last_pos.y;
+
+            // let mut entity_x = false;
+            // let mut entity_y = false;
+
+            // Check that point is not occupied by blocking tile.
+            for entity in self.board.entities.iter() {
+
+                // Not a blocking tile, skip check.
+                if !entity.blocking {
+                    continue;
+                }
+
+                // A tile cannot block itself.
+                if entity.pos == start_pos {
+                    continue;
+                }
+
+                if entity.pos == current_pos {
+                    is_visible = false;
+                    break;
+                }
+                
+                // // Check if movement is horizontal.
+                // // Note: assumes only 1 tile movement.
+                // if start_pos != last_pos && dx.abs() + dy.abs() == 2 {
+                //     // Check if neighbouring tiles are walls.
+                //     if entity.pos.x == last_pos.x+dx && entity.pos.y == last_pos.y {
+                //         entity_x = true;
+                //     }
+                //     if entity.pos.y == last_pos.y+dy && entity.pos.x == last_pos.x {
+                //         entity_y = true;
+                //     }
+
+                //     if entity_x && entity_y {
+                //         is_visible = false;
+                //         break;
+                //     }
+                // }
+            }
+
+            // Update last visited position.
+            if current_pos != last_pos {
+                last_pos = current_pos;
+            }
+
+            // // For drawing the path checked between player and debug position.
+            // if self.debug.is_active && start_pos == self.debug.pos {
+            //     self.debug.path.push(start_pos);
+
+            //     // Save the actual sample point (no rounding).
+            //     self.debug.sample_points.push([
+            //         current_pos.x as f64 + (i as f64 * x_step),
+            //         current_pos.y as f64 + (i as f64 * y_step)
+            //     ]);
+            // }
+
+            // Move one step in direction towards end_pos.
+            // round() => get point closest to sample.
+            current_pos = utils::Position{
+                x: start_pos.x + (i as f64 * x_step).round() as i32,
+                y: start_pos.y + (i as f64 * y_step).round() as i32
+            };
+        }
+
+        is_visible
+    }
+
+    pub fn is_visible_by_player(&self, pos: utils::Position) -> bool {
 
         // Don't bother checking  player position, will be filled by player.
         if pos == self.player.entity.pos { return true; }
 
-        // Distance between pos and player.
         let dist = utils::Position::distance(self.player.entity.pos, pos);
-
-        // Delta between pos and player.
         let x_diff = self.player.entity.pos.x - pos.x;
         let y_diff = self.player.entity.pos.y - pos.y;
 
@@ -204,10 +280,10 @@ impl Game {
         //
         // Check if the closest point to the line formed between pos and player 
         // is a wall when sampled 2*dist times along the line.
-        let steps = dist * 2.0;
+        let number_of_samples = dist * 2.0;
         // How much to step in x/y direction for each sample.
-        let x_step = x_diff as f64 / steps;
-        let y_step = y_diff as f64 / steps;
+        let x_step = x_diff as f64 / number_of_samples;
+        let y_step = y_diff as f64 / number_of_samples;
         
         if self.debug.is_active && pos == self.debug.pos {
             println!(
@@ -225,78 +301,28 @@ impl Game {
                  y_step
             );
         }
-        
-        // Start at pos.
-        let mut start_pos = pos;
-        let mut last_pos = pos;
-        let mut is_visible = true;
 
-        // Sample "steps" times along the line formed between player and pos.
-        for i in 0..steps as i32 {
-            if self.debug.is_active && pos == self.debug.pos {
-                println!(
-                    "index: {}, pos: ({},{})",
-                     i,
-                     start_pos.x, start_pos.y
-                );
-            }
-            
-            let dx = start_pos.x-last_pos.x;
-            let dy = start_pos.y-last_pos.y;
+        self.is_in_line_of_sight(number_of_samples as usize,
+                                 x_step,
+                                 y_step,
+                                 pos)
+    }
 
-            let mut wall_x = false;
-            let mut wall_y = false;
+    pub fn draw_ground(&mut self,
+                       ground_pos: utils::Position,
+                       ctx: &Context,
+                       graphics: &mut G2d) {
 
-            // Check that point is not occupied by wall.
-            for wall in self.board.blocking_map.iter() {
-                if wall.pos == start_pos {
-                    is_visible = false;
-                    break;
-                }
-                
-                // Check if movement is horizontal.
-                // Note: assumes only 1 tile movement.
-                if start_pos != last_pos && dx.abs() + dy.abs() == 2 {
-                    // Check if neighbouring tiles are walls.
-                    if wall.pos.x == last_pos.x+dx && wall.pos.y == last_pos.y {
-                        wall_x = true;
-                    }
-                    if wall.pos.y == last_pos.y+dy && wall.pos.x == last_pos.x {
-                        wall_y = true;
-                    }
+        let player_pos = self.player.entity.pos;
+        // Reduce light intensity based on distance from player.
+        let distance = utils::Position::distance(player_pos, ground_pos) as f32;
+        let intensity = 1.0-distance/RENDER_DISTANCE;
 
-                    if wall_x && wall_y {
-                        is_visible = false;
-                        break;
-                    }
-                }
-            }
+        // Workaround since cmp::max doesn't work for f32...
+        let mut color = 0.0;
+        if intensity > 0.0 { color = intensity; }
 
-            // Update last visited position.
-            if start_pos != last_pos {
-                last_pos = start_pos;
-            }
-
-            // For drawing the path checked between player and debug position.
-            if self.debug.is_active && pos == self.debug.pos {
-                self.debug.path.push(start_pos);
-
-                // Save the actual sample point (no rounding).
-                self.debug.sample_points.push([
-                    pos.x as f64 + (i as f64 * x_step),
-                    pos.y as f64 + (i as f64 * y_step)
-                ]);
-            }
-
-            // Move one step in direction towards player.
-            // round() => get point closest to sample.
-            start_pos = utils::Position{
-                x: pos.x + (i as f64 * x_step).round() as i32,
-                y: pos.y + (i as f64 * y_step).round() as i32
-            };
-        }
-
-        is_visible
+        Game::draw_block(self, &ground_pos, [color, color, color, 1.0], ctx, graphics);
     }
 
     pub fn draw_light(&mut self,
@@ -306,21 +332,15 @@ impl Game {
         self.debug.clear();
 
         // For each point on board...
-        for x in self.camera.pos.x..(self.camera.pos.x+self.camera.size.width) {
-            for y in self.camera.pos.y..(self.camera.pos.y+self.camera.size.height) {
+        let camera_edge_x = self.camera.pos.x+self.camera.size.width;
+        let camera_edge_y = self.camera.pos.y+self.camera.size.height;
+        for x in self.camera.pos.x..camera_edge_x {
+            for y in self.camera.pos.y..camera_edge_y {
                 let pos = utils::Position{x,y};
 
                 // If visible, draw ground.
-                if Game::is_visible(self, pos) {
-                    // Reduce light intensity based on distance from player.
-                    let distance = utils::Position::distance(self.player.entity.pos, pos) as f32;
-                    let intensity = 1.0-distance/RENDER_DISTANCE;
-
-                    // Workaround since cmp::max doesn't work for f32...
-                    let mut color = 0.0;
-                    if intensity > 0.0 { color = intensity; }
-
-                    Game::draw_block(self, &pos, [color, color, color, 1.0], ctx, graphics);
+                if Game::is_visible_by_player(self, pos) {
+                    Game::draw_ground(self, pos, ctx, graphics);
                 }
             }
         }
@@ -331,7 +351,7 @@ impl Game {
                      wall: &Entity,
                      context: &Context,
                      graphics: &mut G2d) {
-        let mut color = [0.0, 0.0, 1.0, 1.0];
+        let mut color;
         match wall.tile_type {
             Tile::Player => color = [1.0, 0.0, 0.0, 1.0],
             Tile::Grass => color = [0.0, 1.0, 0.0, 1.0],
@@ -353,17 +373,24 @@ impl Game {
         );
     }
 
-    pub fn draw_wall_if_visible(&self,
-                             wall: &Entity,
+    pub fn draw_wall_if_visible(&mut self,
+                             wall_index: usize,
                              context: &Context,
                              graphics: &mut G2d) {
-        let distance = utils::Position::distance(self.player.entity.pos, wall.pos) as f32;
+        let pos = self.player.entity.pos;
+
+        let wall = &self.board.entities[wall_index];
+
+        let distance = utils::Position::distance(pos, wall.pos) as f32;
         let light_intensity = 1.0-distance/RENDER_DISTANCE;
+
+        let half_camera_width = (self.camera.size.width/2) as i32;
+        let half_camera_height = (self.camera.size.height/2) as i32;
 
         if distance < RENDER_DISTANCE {
             let mut draw_pos = Position{
-                x: std::cmp::max(self.player.entity.pos.x-(self.camera.size.width/2) as i32, 0),
-                y: std::cmp::max(self.player.entity.pos.y-(self.camera.size.height/2) as i32, 0),
+                x: std::cmp::max(pos.x-half_camera_width, 0),
+                y: std::cmp::max(pos.y-half_camera_height, 0),
             };
             let dx = self.board.size.width - self.camera.size.width;
             let dy = self.board.size.height - self.camera.size.height;
@@ -371,14 +398,19 @@ impl Game {
             draw_pos.y = std::cmp::min(draw_pos.y, dy);
 
             // TODO: Check if wall is in camera range.
-            self.draw_wall(light_intensity, wall, context, graphics);
+            // If visible, draw tile.
+            if self.is_visible_by_player(wall.pos) {
+                Game::draw_wall(self, light_intensity, wall, context, graphics);
+            }
         }
     }
 
     pub fn calculate_camera_offset(&mut self) {
+        let pos = self.player.entity.pos;
+
         let mut camera_offset = utils::Position{
-            x: std::cmp::max(self.player.entity.pos.x-(self.camera.size.width/2) as i32, 0),
-            y: std::cmp::max(self.player.entity.pos.y-(self.camera.size.height/2) as i32, 0),
+            x: std::cmp::max(pos.x-(self.camera.size.width/2) as i32, 0),
+            y: std::cmp::max(pos.y-(self.camera.size.height/2) as i32, 0),
         };
         let dx = self.board.size.width - self.camera.size.width;
         let dy = self.board.size.height - self.camera.size.height;
@@ -400,8 +432,8 @@ impl Game {
             self.draw_light(&context, graphics);
 
             // Draw walls if visible from player.
-            for wall in self.board.blocking_map.iter() {
-                self.draw_wall_if_visible(wall, &context, graphics);
+            for i in 0..self.board.entities.len() {
+                self.draw_wall_if_visible(i, &context, graphics);
             }
             
             // Draw player.
