@@ -11,9 +11,7 @@ use board::*;
 use entity::*;
 use tile::*;
 
-use std::{
-    fs::File,
-};
+use std::fs::File;
 
 pub struct TileMap {
     pub player: Entity,
@@ -28,20 +26,19 @@ impl TileMap {
                 x: 5, 
                 y: 5,
             },
-            blocking: false,
-            tile: Tile::Player,
+            tile: tile::PLAYER,
         };
 
         let board = Board{
-            size: size,
+            size,
             scale: 30,
-            blocking_map: Vec::new(),
+            entities: Vec::new(),
         };
 
         TileMap {
-            player: player,
-            board: board,
-            selected_tile: Tile::Wall,
+            player,
+            board,
+            selected_tile: tile::WALL,
         }
     }
 
@@ -60,18 +57,17 @@ impl TileMap {
             y: y as i32 / self.board.scale,
         };
 
-        if self.board.blocking_map.iter().any(|entity| entity.pos == clicked_pos) {
+        if self.board.entities.iter().any(|entity| entity.pos == clicked_pos) {
             println!("Position already occupied!");
         } else { // Position isn't occupied.
             println!("Spawn new entity on board position {} {}", clicked_pos.x, clicked_pos.y);
 
-            self.board.blocking_map.push(
+            self.board.entities.push(
                 Entity{
                     pos: utils::Position{
                         x: clicked_pos.x,
                         y: clicked_pos.y,
                     }, 
-                    blocking: true,
                     tile: self.selected_tile,
                 },
             );
@@ -84,8 +80,8 @@ impl TileMap {
             y: y as i32 / self.board.scale,
         };
 
-        if let Some(index) = self.board.blocking_map.iter().position(|entity| entity.pos == clicked_pos) {
-            self.board.blocking_map.remove(index);
+        if let Some(index) = self.board.entities.iter().position(|entity| entity.pos == clicked_pos) {
+            self.board.entities.remove(index);
         } else { // Position isn't occupied.
             println!("There is not tile in this position!");
         }
@@ -124,7 +120,7 @@ impl TileMap {
                 graphics
             );
 
-            for wall in self.board.blocking_map.iter() {
+            for wall in self.board.entities.iter() {
                 let wall_sprite = [
                     (wall.pos.x * self.board.scale) as f64,
                     (wall.pos.y * self.board.scale) as f64,
@@ -133,10 +129,10 @@ impl TileMap {
                 ];
 
                 let color;
-                match wall.tile {
-                    Tile::Wall => color = [0.4, 0.4, 0.4, 1.0],
-                    Tile::Grass => color = [0.0, 1.0, 0.0, 1.0],
-                    Tile::Player => color = [0.8, 0.0, 0.0, 1.0],
+                match wall.tile.tile_type {
+                    tile::TileType::Wall => color = [0.4, 0.4, 0.4, 1.0],
+                    tile::TileType::Grass => color = [0.0, 1.0, 0.0, 1.0],
+                    tile::TileType::Player => color = [0.8, 0.0, 0.0, 1.0],
                 }
 
                 rectangle(

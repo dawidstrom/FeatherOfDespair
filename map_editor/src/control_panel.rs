@@ -3,10 +3,10 @@ extern crate piston_window;
 use piston_window::*;
 
 use crate::utils;
-use crate::button::{Button};
-use crate::graphics::{Drawable};
-use crate::interaction::{Clickable};
-use crate::tilemap::{TileMap};
+use crate::button::Button;
+use crate::graphics::Drawable;
+use crate::interaction::Clickable;
+use crate::tilemap::TileMap;
 
 pub struct ControlPanel {
     pub pos: utils::Position,

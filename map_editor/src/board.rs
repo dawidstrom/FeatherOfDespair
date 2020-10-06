@@ -8,9 +8,9 @@ use std::{
 };
 
 pub struct Board {
-    pub size:           Rect,
-    pub scale:          i32,
-    pub blocking_map:   Vec<Entity>,
+    pub size:       Rect,
+    pub scale:      i32,
+    pub entities:   Vec<Entity>,
 }
 
 impl Board {
@@ -28,9 +28,12 @@ impl Board {
         )
         {
             return Some(Entity{
-                pos: Position{ x,y },
-                blocking: blocking != 0,
-                tile: Tile::from_u8(tile_type),
+                pos: Position{ x, y },
+                tile: Tile{
+                    tile_type: TileType::from_u8(tile_type),
+                    blocking: blocking != 0,
+                },
+
             })
         }
         None
@@ -53,7 +56,7 @@ impl Board {
         Ok(Board {
             size: Rect{ width, height },
             scale,
-            blocking_map: tiles,
+            entities: tiles,
         })
     }
 
@@ -75,7 +78,7 @@ impl Board {
         }
 
         // Entities.
-        for entity in self.blocking_map.iter() {
+        for entity in self.entities.iter() {
             // Position.
             if let Err(e) = writer.write_i32::<LittleEndian>(entity.pos.x) {
                 println!("Failed to write entity x-position. {:?}.", e);
@@ -86,12 +89,12 @@ impl Board {
                 return;
             }
             // Is blocking.
-            if let Err(e) = writer.write_u8(entity.blocking as u8) {
+            if let Err(e) = writer.write_u8(entity.tile.blocking as u8) {
                 println!("Failed to write if entity is blocking. {:?}.", e);
                 return;
             }
             // Tile type.
-            if let Err(e) = writer.write_u8(entity.tile as u8) {
+            if let Err(e) = writer.write_u8(entity.tile.tile_type as u8) {
                 println!("Failed to write entity tile type. {:?}.", e);
                 return;
             }
