@@ -133,6 +133,7 @@ impl TileMap {
                     tile::TileType::Wall => color = [0.4, 0.4, 0.4, 1.0],
                     tile::TileType::Grass => color = [0.0, 1.0, 0.0, 1.0],
                     tile::TileType::Player => color = [0.8, 0.0, 0.0, 1.0],
+                    tile::TileType::Monster => color = [0.8, 0.0, 0.8, 1.0],
                 }
 
                 rectangle(

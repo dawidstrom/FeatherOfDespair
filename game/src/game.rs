@@ -47,7 +47,8 @@ impl Game {
                     y: 5,
                 },
                 tile_type: Tile::Player,
-                blocking: false,
+                is_movement_blocking: false,
+                is_vision_blocking: false,
                 moving: Direction::default(),
                 move_timer: Some(Timer {
                     remaining: 0,
@@ -193,8 +194,8 @@ impl Game {
         let mut last_pos = self.player.entity.pos;
         let mut is_visible = true;
 
-        // Sample for blocking tiles along line of sight between start and end 
-        // position.
+        // Sample for vision blocking tiles along line of sight between start
+        // and end position.
         for i in 0..number_of_samples as i32 {
 
             // Used to check if difference between sample points are diagonal.
@@ -204,11 +205,11 @@ impl Game {
             // let mut entity_x = false;
             // let mut entity_y = false;
 
-            // Check that point is not occupied by blocking tile.
+            // Check that point is not occupied by vision blocking tile.
             for entity in self.board.entities.iter() {
 
-                // Not a blocking tile, skip check.
-                if !entity.blocking {
+                // Not a vision blocking tile, skip check.
+                if !entity.is_vision_blocking {
                     continue;
                 }
 
@@ -356,6 +357,7 @@ impl Game {
             Tile::Player => color = [1.0, 0.0, 0.0, 1.0],
             Tile::Grass => color = [0.0, 1.0, 0.0, 1.0],
             Tile::Wall => color = [0.4, 0.4, 0.4, 1.0],
+            Tile::Monster => color = [0.8, 0.0, 0.8, 1.0],
         };
         // Workaround since cmp::max doesn't work for f32...
         if light_intensity > 0.0 {

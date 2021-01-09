@@ -42,11 +42,13 @@ impl Board {
         if let (
             Ok(x), 
             Ok(y), 
-            Ok(blocking),
+            Ok(is_movement_blocking),
+            Ok(is_vision_blocking),
             Ok(tile_type),
         ) = (
             reader.read_i32::<LittleEndian>(),
             reader.read_i32::<LittleEndian>(),
+            reader.read_u8(),
             reader.read_u8(),
             reader.read_u8(),
         )
@@ -54,7 +56,8 @@ impl Board {
             return Some(Entity{
                 pos: Position{ x,y },
                 tile_type: Tile::from_u8(tile_type),
-                blocking: blocking != 0,
+                is_movement_blocking: is_movement_blocking != 0,
+                is_vision_blocking: is_vision_blocking != 0,
                 moving: Direction::default(),
                 move_timer: None,
             })
@@ -101,7 +104,7 @@ impl Movable for Entity {
         };
 
         for entity in board.entities.iter() {
-            if entity.blocking && entity.pos == new_pos {
+            if entity.is_movement_blocking && entity.pos == new_pos {
                 new_pos = self.pos;
             }
         }

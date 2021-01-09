@@ -7,6 +7,7 @@ pub enum Tile {
     Wall = 0,
     Grass,
     Player,
+    Monster,
 }
 }
 

@@ -27,17 +27,18 @@ impl Default for Direction {
 }
 
 pub struct Entity {
-    pub pos: Position,
-    pub tile_type: Tile,
-    pub blocking: bool,
-    pub moving: Direction,
-    pub move_timer: Option<Timer>,
+    pub pos:                    Position,
+    pub tile_type:              Tile,
+    pub is_movement_blocking:   bool,
+    pub is_vision_blocking:     bool,
+    pub moving:                 Direction,
+    pub move_timer:             Option<Timer>,
 }
 
 pub struct Timer {
-    pub remaining: i64,
-    pub duration: i64,
-    pub looping: bool,
+    pub remaining:  i64,
+    pub duration:   i64,
+    pub looping:    bool,
 }
 
 pub struct Player {

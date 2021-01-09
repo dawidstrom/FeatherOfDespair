@@ -18,11 +18,13 @@ impl Board {
         if let (
             Ok(x), 
             Ok(y), 
-            Ok(blocking),
+            Ok(is_movement_blocking),
+            Ok(is_vision_blocking),
             Ok(tile_type),
         ) = (
             reader.read_i32::<LittleEndian>(),
             reader.read_i32::<LittleEndian>(),
+            reader.read_u8(),
             reader.read_u8(),
             reader.read_u8(),
         )
@@ -30,8 +32,9 @@ impl Board {
             return Some(Entity{
                 pos: Position{ x, y },
                 tile: Tile{
-                    tile_type: TileType::from_u8(tile_type),
-                    blocking: blocking != 0,
+                    tile_type:              TileType::from_u8(tile_type),
+                    is_movement_blocking:   is_movement_blocking != 0,
+                    is_vision_blocking:     is_vision_blocking != 0,
                 },
 
             })
@@ -88,9 +91,14 @@ impl Board {
                 println!("Failed to write entity y-position. {:?}.", e);
                 return;
             }
-            // Is blocking.
-            if let Err(e) = writer.write_u8(entity.tile.blocking as u8) {
-                println!("Failed to write if entity is blocking. {:?}.", e);
+            // Is movement blocking.
+            if let Err(e) = writer.write_u8(entity.tile.is_movement_blocking as u8) {
+                println!("Failed to write if entity is is_movement_blocking . {:?}.", e);
+                return;
+            }
+            // Is vision blocking.
+            if let Err(e) = writer.write_u8(entity.tile.is_vision_blocking  as u8) {
+                println!("Failed to write if entity is is_vision_blocking  . {:?}.", e);
                 return;
             }
             // Tile type.
